@@ -1,0 +1,144 @@
+{
+  "NG1":{
+    "textColor": "#f6d18f",
+    "color":"#c9610a",
+    "borderColor":"#bf453d",
+    "shape":"circle",
+    "name": "Rationing Potenial"
+  },
+  "NG2":{
+    "textColor": "black",
+    "color":"#ebb101",
+    "borderColor":"#bf453d",
+    "shape":"circle",
+    "name": "Mandates"
+  },
+  "NG3":{
+    "textColor": "#f6d18f",
+    "color":"#297a9f",
+    "borderColor":"#bf453d",
+    "shape":"circle",
+    "name": "Involvement in Health Insurance Market"
+  },
+  "NG4":{
+    "textColor": "black",
+    "color":"#adb25e",
+    "borderColor":"#bf453d",
+    "shape":"circle",
+    "name": "Taxes & Monetary Fees / Penalties / Cuts"
+    
+  },
+  "NG5":{
+    "textColor": "#f6d18f",
+    "color":"#223e66",
+    "borderColor":"#bf453d",
+    "shape":"circle",
+    "name": "Other Expenses"
+  },
+  "NG6":{
+    "textColor": "#f6d18f",
+    "color":"#c9610b",
+    "borderColor":"#969a48",
+    "shape":"circle",
+    "name": "Trust Fund (Rationing Potential)"
+  },
+  "NG7":{
+    "textColor": "black",
+    "color":"#efefef", 
+    "borderColor":"#969a48",
+    "shape":"circle",
+    "name": "Represents Bundles of Additional Entities"
+  },
+  "NG8":{
+    "textColor": "#f6d18f",
+    "color":"#203958",
+    "borderColor":"#929b46",
+    "shape":"circle",
+    "name": "Other New Trust Funds / Monetary Benifits"
+  },
+  "P1":{
+    "textColor": "black",
+    "color":"#f7d397",
+    "borderColor":"#2c528c",
+    "shape":"circle",
+    "name": "Private Entity with New Mandates / Regulations / Responsibilities"
+  },
+  "P2":{
+    "textColor": "black",
+    "color":"#f7d397",
+    "borderColor":"#1e2128",
+    "shape":"circle",
+    "name": "Unchanged Private Entity"
+  },
+  "EG1":{
+    "textColor": "black",
+    "color":"#f6d18f",
+    "borderColor":"#ba4940",
+    "shape":"circle",
+    "name": "Government with Expanded Authority / Responsibility"
+  },
+  "EG2":{
+    "textColor": "black",
+    "color":"#f6d18f",
+    "borderColor":"#959b44",
+    "shape":"circle",
+    "name": "Government Financial Entity with New Inflows / Outflows"
+  },
+  "EG3":{
+    "textColor": "black",
+    "color":"#f6d18f",
+    "borderColor":"black",
+    "shape":"circle",
+    "name": "State / Territory with Expanded Authority / Responsibility"
+  },
+  "MAIN":{
+    "textColor": "white",
+    "color":"#ba443a",
+    "borderColor":"black",
+    "shape":"circle",
+    "name": "Main"
+  },
+  "SIP":{
+    "textColor": "black",
+    "color":"#f6d18f",
+    "borderColor":"#ba4940",
+    "shape":"circle",
+    "name": "Special Interest Provisions"
+  },
+  "NR1":{
+    "textColor": "#fcfafa",
+    "color":"#b8493d",
+    "shape":"arrow",
+    "name": "Regulations / Requirements / Mandates"
+  },
+  "NR2":{
+    "textColor": "#fcfafa",
+    "color":"#151726",
+    "shape":"arrow",
+    "name": "Reporting Requirements"
+  },
+  "NR3":{
+    "textColor": "black",
+    "color":"#336496",
+    "shape":"arrow",
+    "name": "Oversight"
+  },
+  "NR4":{
+    "textColor": "black",
+    "color":"#babf6c",
+    "shape":"arrow",
+    "name": "Money Flows"
+  },
+  "NR5":{
+    "textColor": "black",
+    "color":"#e6be71",
+    "shape":"line",
+    "name": "Consultation / Advisory / Info Sharing"
+  },
+  "NR6":{
+    "textColor": "#fcfafa",
+    "color":"#4e585a",
+    "shape":"line",
+    "name": "Structural Connections (Includes Existing)"
+  }
+}
