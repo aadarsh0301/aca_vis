@@ -5,12 +5,50 @@
   import abbrevations from "./abbrevations.json"
   import PDFViewer from "./PDFViewer";
   import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
+  import Joyride from "react-joyride";
+  import Switch from "react-switch";
 
   function clamp(x, lo, hi) {
     return x < lo ? lo : x > hi ? hi : x;
   }
 
+
+  const steps = [
+    {
+      target: ".APPTITLE",
+      content: "Welcome!! Please spare a minute to learn about Your New Health Care Act",
+      disableBeacon: true
+    },
+    {
+      target: ".SEARCHBOX",
+      content: "You can search for entities here.",
+    },
+    {
+      target: ".ENTITY",
+      content: "This is an entity. You can click on it to highlight the corresponding nodes and edges in the bubble chart.",
+    },
+    {
+      target: ".node",
+      content: "This node represents an entity. The edges represent its relationships with other entities. You can hover on a node to highlight its connections. " +
+          "You can lock in the highlighted view by clicking on the node. Similarly you can hover and click on an edge as well to highlight associated nodes.",
+    },
+    {
+      target: ".Other",
+      content: "You can select this filter to filter out particular set of entities.",
+    },
+    {
+      target: ".LAW",
+      content: "You can click on the law that opens up a pdf which describes the law.",
+    },
+    {
+      target: ".TOUR",
+      content: "You can click here to restart the tour.",
+    },
+
+    ]
+
   const ForceGraph = () => {
+    const pdfURL = "https://housedocs.house.gov/energycommerce/ppacacon.pdf";
     const allLaws = Object.keys(data.lawPageNumbers);
     const svgRef = useRef(null);
     const [nodes, setNodes] = useState(data.nodes);
@@ -21,6 +59,15 @@
     const [filteredGlossary, setFilteredGlossary] = useState(Object.keys(glossary));
     const [checkboxes, setCheckboxes] = useState([]);
     const [first, setfirst] = useState(true);
+
+    const [run, setRun] = useState(true);
+    const handleJoyrideCallback = (data) => {
+      const action = ["skip", "reset", "close"]
+      console.log(data)
+      if(action.includes(data['action'])){
+        setRun(false);
+      }
+    }
 
     const myCSS = {
       links: {
@@ -125,6 +172,7 @@
           .join("g") // Changed from circle to g element to contain both circle and text
           .classed("node", true)
           .classed("fixed", (d) => d.fx !== undefined)
+          //.attr("class", (d) => `NODE${d.id}`)
           .attr("cursor","pointer")
           .on("mouseover", handleMouseOverNode)
           .on("mouseout", handleMouseOutNode)
@@ -359,12 +407,56 @@
       setSearchQuery(event.target.value);
     };
 
+
+    const searchBills = async (query) => {
+      try {
+        const response = await fetch('http://localhost:5001/search', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query }),
+        });
+
+        if (!response.ok) {
+          throw new Error("Search API failed");
+        }
+
+        const data = await response.json();
+        return data.bill_ids;
+      } catch (error) {
+        console.error("Error during bill search:", error);
+        return [];
+      }
+    };
+    const [searchedRealtedBills, setSearchedRelatedBills] = useState([])
     // Filter nodes based on the search query whenever the query changes
     useEffect(() => {
       const filterNodes = async () => {
-        const filtered = data.nodes.filter((node) =>
-            node.NodeText.toLowerCase().includes(searchQuery.toLowerCase())
-        );
+        let filtered = data;
+        if(searchToggle && searchQuery.length>1){
+          try {
+            const searchedBills = await searchBills(searchQuery); // Wait for API response
+            console.log("Searched Bills:", searchedBills);
+
+            if (Array.isArray(searchedBills)) {
+              const billsString = searchedBills.join(", ");
+              setSearchedRelatedBills(billsString);
+            }
+            if (Array.isArray(searchedBills) && searchedBills.length > 0) {
+              filtered = data.nodes.filter((node) =>
+                  searchedBills.some((billId) =>
+                      node.Subtext?.toLowerCase().includes(billId.toLowerCase())
+                  )
+              );
+            }
+          } catch (error) {
+            console.error("Error searching bills:", error);
+          }
+        } else {
+          setSearchedRelatedBills('');
+          filtered = data.nodes.filter((node) =>
+              node.NodeText.toLowerCase().includes(searchQuery.toLowerCase())
+          );
+        }
         setFilteredNodes(filtered);
       };
       filterNodes();
@@ -468,7 +560,7 @@
       return Subtext.split(/[^a-zA-Z0-9]+/).map((item, index) => (
           <React.Fragment key={index}>
             {linksArray.includes(item.trim()) ? (
-                <a style={{ color: linkColor}} href={`#${item.trim()}`} onClick={(e)=>lawClicked(e,item.trim())}>{item.trim()} ;</a>
+                <a className="LAW" style={{ color: linkColor}} href={`#${item.trim()}`} onClick={(e)=>lawClicked(e,item.trim())}>{item.trim()} ;</a>
             ) : (
                 <span style={{ color: linkColor}}>{item.trim()} ;</span>
             )}
@@ -484,8 +576,46 @@
       togglePdfOpenerModal();
     }
 
+    const [searchToggle, setSearchToggle] = useState(false)
+
+    useEffect(() => {
+      const checkAndCreateEmbeddings = async () => {
+        try {
+          // Step 1: Check if embeddings.json exists
+          const checkRes = await fetch('http://localhost:5001/check-embeddings');
+          const checkData = await checkRes.json();
+
+          if (!checkData.exists) {
+            // Step 2: If not exists, call generate-embeddings API
+            const res = await fetch('http://localhost:5001/generate-embeddings', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ pdf_url: pdfURL }),
+            });
+
+            const result = await res.json();
+            console.log("Embedding generation result:", result);
+          } else {
+            console.log("Embeddings already exist.");
+          }
+        } catch (err) {
+          console.error("Error during embedding check or generation:", err);
+        }
+      };
+
+      checkAndCreateEmbeddings();
+    }, []);
+
     return (
+        <>
+        {run?<Joyride steps={steps}
+                   continuous={true}
+                   showProgress={true}
+                   showSkipButton={true}
+                   callback={handleJoyrideCallback}
+          />:<></>}
         <div style={{ display: "flex" }}>
+
           {modalOpen &&
               <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)', zIndex: 999 }}>
                 <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', backgroundColor: 'white', padding: '20px', borderRadius: '5px' }}>
@@ -501,32 +631,45 @@
           {pdfOpener &&
               <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)', zIndex: 999 }}>
                 <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', backgroundColor: 'white', padding: '20px', borderRadius: '5px' }}>
-                  <PDFViewer pdfUrl={"https://housedocs.house.gov/energycommerce/ppacacon.pdf"} searchText={pdfSearch} />
+                  <PDFViewer pdfUrl={pdfURL} searchText={pdfSearch} />
                   <button style={{ backgroundColor:'#adb25e'}} onClick={togglePdfOpenerModal}>Close</button>
                 </div>
               </div>
           }
-          <div key="info" style={{ width: '30vw', backgroundColor: 'white', height: '99vh', border: `0.0px solid black`}}>
-            <h4 style={{ backgroundColor:'#3b3b3b', color:'white',border:'5px solid #3b3b3b',
-              borderRadius:10, margin:5, padding: 10}}>Your New Health Care System</h4>
+          <div key="info" style={{ alignContent:'center', width: '30vw', backgroundColor: 'white', height: '99vh', border: `0.0px solid black`}}>
+            <h3 className="APPTITLE" style={{
+              backgroundColor: '#3b3b3b', color: 'white', border: '5px solid #3b3b3b',
+              borderRadius: 10, margin: 5, padding: 10, display: "flex", paddingLeft: '6vw'
+            }}>HealthGrid - <h6 style={{ margin:4, padding:0}}>A Policy Navigator</h6></h3>
 
             <div>
-              <div>
+              <div >
                 <input
+                    className="SEARCHBOX"
                     type="text"
-                    placeholder="Search for entity ..."
+                    placeholder={!searchToggle?"Search for entity ...":"Search for bill content ..."}
                     value={searchQuery}
                     onChange={handleSearch}
                     style={{
                       margin: "10px",
                       padding: "5px",
-                      width: "90%", // Take up full width of parent
+                      width: "92%", // Take up full width of parent
                       borderRadius: "5px", // Rounded corners
-                      border: "2px solid black" // Black border
+                      border: "2px solid black", // Black border
+                      marginBottom: "5px"
                     }}
                 />
               </div>
-              {nodecardSelected!==0?<div style={{ display:'flex', margin:10}}>
+              <div style={{display: "flex", marginLeft:10, marginBottom:10}}>
+                <h5 style={{margin: 0, padding: 0, marginRight: 10}}>Enable Smart Bill Search </h5>
+                <Switch width={40} height={15} borderRadius={15} onChange={() => {
+                  setSearchedRelatedBills('');
+                  setSearchToggle(!searchToggle)}} checked={searchToggle} />
+              </div>
+              {searchToggle?<div style={{display: "flex", marginLeft:10, marginBottom:10}}>
+              <h6 style={{margin: 0, padding: 0, marginRight: 10}}>Top Related Bills : {formatSubtext(searchedRealtedBills, allLaws, 'black')}</h6>
+              </div>:<></>}
+                {nodecardSelected!==0?<div style={{ display:'flex', margin:10}}>
                 <div style={{ width:'90%'}}><h4 style={{ margin: 0}}> Selected : <span style={{color:'#223e66'}}>{nodecardSelected.NodeText}</span></h4></div>
                 <div> <span style={{
                   fontSize:15,marginRight: 10, backgroundColor:'#bf453d',color: 'white', border: `1px solid #bf453d`,
@@ -587,12 +730,12 @@
                     );
                   })}</div>
                 :
-                <div style={{ overflowY: 'auto', height: '85vh' }}>
+                <div style={{ overflowY: 'auto', height: '80vh' }}>
 
-                  {filteredNodes.map((e, index) => {// Assuming you have a function to get color based on type
+                  {filteredNodes && filteredNodes.length>1?filteredNodes.map((e, index) => {// Assuming you have a function to get color based on type
 
                     return (
-                        <div style={{
+                        <div className="ENTITY" style={{
                           textAlign: 'center',
                           border: `${myCSS["nodes"]["borderWidth"]}px solid ${glossary[e.group]['borderColor']}`,
                           backgroundColor: glossary[e.group]['color'], padding: 5, margin: 5, borderRadius: 10, cursor: 'pointer'
@@ -608,7 +751,7 @@
                           })}
                         </div>
                     );
-                  })}
+                  }):<></>}
                 </div>
             }
           </div>
@@ -623,13 +766,20 @@
           </div>
           <div style={{ width: '20vw', overflowY: 'auto', height: '99vh', border: `0.0px solid black` }}>
             <div style={{ display:'flex', marginTop:10, marginBottom:10, alignItems:'center'}}>
-              <span style={{ width:'20%'}}>
+              <span style={{width: '20%'}}>
+                <span className="TOUR" id='modal' onClick={()=>{setRun(true)}} style={{
+                  backgroundColor: '#223e66',
+                  fontSize: 17, marginLeft: 10, color: 'white', border: `1px solid #223e66`,
+                  paddingLeft: 3.5, paddingRight: 3.5, borderRadius: 150, cursor: 'pointer', fontStyle: 'bold'
+                }}>&#x21bb;
+                </span>
               </span>
-              <h2 style={{margin:0, width:'60%'}}>
+              <h2 style={{margin: 0, width: '60%'}}>
                 GLOSSARY
               </h2>
               <span>
-                <span id='modal' onClick={toggleModal} style={{ backgroundColor:'#223e66',
+                <span className="HELP" id='modal' onClick={toggleModal} style={{
+                  backgroundColor: '#223e66',
                   fontSize: 15, marginLeft: 10, color: 'white', border: `2px solid #223e66`,
                   paddingLeft: 5, paddingRight: 5, borderRadius: 100,cursor: 'pointer', fontStyle:'bold'
                 }}>&#63;
@@ -647,7 +797,7 @@
               <h4 style={{ margin: 5, backgroundColor: '#3b3b3b', color: 'white' }}>New Government</h4>
               {
                 filteredGlossary.filter((e) => { return e.startsWith("NG") }).map((e) => {
-                  return <div style={{ display: 'flex', marginLeft: 10}}><input style={{cursor: 'pointer' }} type="checkbox" checked={checkboxes.includes(e)} onChange={() => addtoFilter(e)} />
+                  return <div className={glossary[e].name} style={{ display: 'flex', marginLeft: 10}}><input style={{cursor: 'pointer' }} type="checkbox" checked={checkboxes.includes(e)} onChange={() => addtoFilter(e)} />
                     <h5 style={{
                       width: '80%',padding:'0.4vh', margin: '0.4vh', borderRadius: '2vh', color: glossary[e]['textColor'], border: `${myCSS["nodes"]["borderWidth"]}px solid ${glossary[e]['borderColor']}`,
                       backgroundColor: glossary[e]['color'],
@@ -694,6 +844,7 @@
             </div>
           </div>
         </div>
+          </>
     );
   };
 
