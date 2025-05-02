@@ -31,8 +31,10 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "heroku-postbuild": "npm install && npm run build"
+    "heroku-prebuild": "cd client && npm install",
+    "heroku-postbuild": "cd client && npm run build"
   },
+  "cacheDirectories": ["client/node_modules"],
   "proxy": "http://localhost:5001",
   "eslintConfig": {
     "extends": [
