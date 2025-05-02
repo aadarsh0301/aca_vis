@@ -1,0 +1,35 @@
+# Node.js
+client/node_modules/
+client/.cache/
+client/.env
+client/coverage/
+client/build/  # Except you need to deploy this to Heroku
+
+# Python
+server/__pycache__/
+server/.venv/
+server/env/
+server/venv/
+server/*.pyc
+server/*.pyo
+server/*.pyd
+server/.Python
+
+# General
+.DS_Store
+.env
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Heroku (optional)
+profile
+
+# Add these to prevent cache files from being tracked
+client/node_modules/.cache/
+*.pack
