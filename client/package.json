@@ -13,17 +13,17 @@
     "react-joyride": "^2.9.2",
     "react-scripts": "5.0.1",
     "react-switch": "^7.1.0",
-    "react-zoom-pan-pinch": "^3.4.4"
+    "react-zoom-pan-pinch": "^3.4.4",
+    "serve": "^14.2.4"
   },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "serve": "serve -s build -p $PORT",
-    "heroku-postbuild": "npm install && npm run build"
+    "serve": "serve -s client/build -p $PORT",
+    "heroku-postbuild": "npm run build",
+    "test": "react-scripts test",
+    "eject": "cd client && react-scripts eject"
   },
-  "cacheDirectories": [
-    "client/node_modules"
-  ],
   "proxy": "http://localhost:5001",
   "eslintConfig": {
     "extends": [
