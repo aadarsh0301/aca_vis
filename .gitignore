@@ -4,6 +4,7 @@ client/.cache/
 client/.env
 client/coverage/
 client/build/  # Except you need to deploy this to Heroku
+node_modules
 
 # Python
 server/__pycache__/
