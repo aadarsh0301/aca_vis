@@ -1,5 +1,6 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 import json
+import os
 from utils import (
     extract_text_from_pdf_from_url,
     chunk_by_sections,
@@ -7,11 +8,13 @@ from utils import (
     search_bills,
     extract_bill_id
 )
-import os
-
 from flask_cors import CORS
 
-app = Flask(__name__)
+app = Flask(
+    __name__,
+    static_folder="../client/build",
+    static_url_path="/"
+)
 CORS(app, supports_credentials=True)
 
 chunks = []
@@ -53,7 +56,6 @@ def search():
     data = request.get_json()
     query = data.get("query")
     try:
-        # Load from file if not in memory
         if not embeddings:
             with open("embeddings.json", "r") as f:
                 embeddings = json.load(f)
@@ -70,6 +72,15 @@ def search():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+# Serve React app
+@app.route("/", defaults={"path": ""})
+@app.route("/<path:path>")
+def serve_react(path):
+    if path != "" and os.path.exists(os.path.join(app.static_folder, path)):
+        return send_from_directory(app.static_folder, path)
+    else:
+        return send_from_directory(app.static_folder, "index.html")
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5001))
-    app.run(debug=True, host='0.0.0.0', port=port)
+    app.run(host='0.0.0.0', port=port)

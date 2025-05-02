@@ -19,12 +19,15 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "serve": "serve -s client/build -p $PORT",
-    "heroku-postbuild": "npm run build",
+    "serve": "serve -s build -l $PORT",
+    "heroku-postbuild": "npm install && npm run build",
     "test": "react-scripts test",
-    "eject": "cd client && react-scripts eject"
+    "eject": "react-scripts eject"
   },
   "proxy": "http://localhost:5001",
+  "engines": {
+    "node": "18.x"
+  },
   "eslintConfig": {
     "extends": [
       "react-app",
