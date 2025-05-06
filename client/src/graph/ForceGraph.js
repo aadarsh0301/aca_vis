@@ -58,6 +58,7 @@
     const [filteredNodes, setFilteredNodes] = useState(data.nodes);
     const [filteredGlossary, setFilteredGlossary] = useState(Object.keys(glossary));
     const [checkboxes, setCheckboxes] = useState([]);
+    const [relationships, setRelationShips] = useState([]);
     const [first, setfirst] = useState(true);
 
     const [run, setRun] = useState(true);
@@ -485,18 +486,25 @@
         setCheckboxes(checkboxes.filter(item => item !== group))
       }
     }
+    const addtoRelationShips = (group) => {
+      if (!relationships.includes(group)) {
+        setRelationShips([...relationships, group])
+      } else {
+        setRelationShips(relationships.filter(item => item !== group))
+      }
+    }
     useEffect(() => {
       if (checkboxes && checkboxes.length > 0) {
         setfirst(false);
         const svg = d3.select(svgRef.current);
         svg.selectAll("*").remove();
         const ids = [];
-        const grouped = data.nodes.filter((e) => { return checkboxes.includes(e.group) });
+        const grouped = nodes.filter((e) => { return checkboxes.includes(e.group) });
         grouped.map((a) => {
           ids.push(a.id)
           return a;
         });
-        const groupedLinks = data.links.filter((e) => { return ids.includes(e.source.id) && ids.includes(e.target.id) });
+        const groupedLinks = links.filter((e) => { return ids.includes(e.source.id) && ids.includes(e.target.id) });
         setNodes(grouped);
         setLinks(groupedLinks);
       } else {
@@ -508,6 +516,33 @@
         }
       }
     }, [checkboxes])
+
+    useEffect(() => {
+      if (relationships && relationships.length > 0) {
+        setfirst(false);
+        const svg = d3.select(svgRef.current);
+        svg.selectAll("*").remove();
+        const ids = [];
+        const groupedLinks = data.links.filter((e) => { return relationships.includes(e.Type) });
+        groupedLinks.map((a) => {
+          if(!ids.includes(a.source.id))
+            ids.push(a.source.id)
+          if(!ids.includes(a.target.id))
+            ids.push(a.target.id)
+          return a;
+        });
+        const grouped = data.nodes.filter((e) => { return ids.includes(e.id) });
+        setNodes(grouped);
+        setLinks(groupedLinks);
+      } else {
+        if (first === false) {
+          const svg = d3.select(svgRef.current);
+          svg.selectAll("*").remove();
+          setNodes(data.nodes);
+          setLinks(data.links);
+        }
+      }
+    }, [relationships])
 
     const toggleModal = () => {
       setModalOpen(!modalOpen);
@@ -618,13 +653,30 @@
 
           {modalOpen &&
               <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)', zIndex: 999 }}>
-                <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', backgroundColor: 'white', padding: '20px', borderRadius: '5px' }}>
-                  <h3>Instructions</h3>
-                  <p>Random 1</p>
-                  <p>Random 2</p>
-                  <p>Random 3</p>
-                  <p>Random 4</p>
-                  <button style={{ backgroundColor:'#adb25e'}} onClick={toggleModal}>Close</button>
+                <div style={{
+                  position: 'absolute',
+                  top: '50%',
+                  left: '50%',
+                  transform: 'translate(-50%, -50%)',
+                  backgroundColor: 'white',
+                  padding: '20px',
+                  borderRadius: '5px'
+                }}>
+                  <h3>Information</h3>
+                  <p>LegiScout dashboard. The central panel displays the interactive, force-directed
+                    legislative-organizational graph
+                    (LOG), where users can click on nodes to highlight immediate relationships. On the left, a
+                    scrollable list of entities provides
+                    quick access to major organizational actors within the legislation; selecting one centers the graph
+                    on its connections. On the
+                    right, a glossary offers filterable categories describing the roles and attributes of each node. At
+                    the top left, a search bar enables
+                    users to enter legislative terms—such as ”appropriation” or ”mandate”—and highlights relevant nodes
+                    through BERT-assisted
+                    semantic linking</p>
+                  <h4>App developed by: Aadarsh Rajiv Patel (aadarshrajiv.patel@stonybrook.edu)</h4>
+                  <h4>Under guidance of: Prof. Klaus Mueller (klaus.mueller@stonybrook.edu)</h4>
+                  <button style={{backgroundColor: '#adb25e'}} onClick={toggleModal}>Close</button>
                 </div>
               </div>
           }
@@ -639,8 +691,8 @@
           <div key="info" style={{ alignContent:'center', width: '30vw', backgroundColor: 'white', height: '99vh', border: `0.0px solid black`}}>
             <h3 className="APPTITLE" style={{
               backgroundColor: '#3b3b3b', color: 'white', border: '5px solid #3b3b3b',
-              borderRadius: 10, margin: 5, padding: 10, display: "flex", paddingLeft: '6vw'
-            }}>HealthGrid - <h6 style={{ margin:4, padding:0}}>A Policy Navigator</h6></h3>
+              borderRadius: 10, margin: 5, padding: 10, display: "flex", paddingLeft: '2vw'
+            }}>LegiScout - <h6 style={{ margin:4, padding:0}}>Navigate Complex Legislation, Visually</h6></h3>
 
             <div>
               <div >
@@ -787,12 +839,21 @@
               </span>
 
             </div>
-            {checkboxes.length > 0 ?<h4 style={{ margin: 0, width:'50%',
+            {checkboxes.length > 0 || relationships.length > 0?<><h4 style={{ margin: 0, width:'50%',
               fontSize:15,marginLeft: '24%', backgroundColor:'#bf453d',color: 'white', border: `1px solid #bf453d`,
               paddingLeft: 3, paddingRight: 3, borderRadius: 100,cursor: 'pointer', marginTop:10
-            }} onClick={() => setCheckboxes([])}>
+            }} onClick={() => {setCheckboxes([]);setRelationShips([])}}>
               Clear Filters
-            </h4>:<></>}
+            </h4>
+              <div style={{marginTop:5}}>
+            {checkboxes.length>0?checkboxes.map((e)=>{
+              return <h6 style={{padding:0, margin:0}}>{e} : {glossary[e].name}</h6>
+            }):<></>}
+                {relationships.length>0?relationships.map((e)=>{
+                  return <h6 style={{padding:0, margin:0}}>{e} : {glossary[e].name}</h6>
+                }):<></>}
+              </div>
+            </>:<></>}
             <div style={{ backgroundColor: '#fcfafa', marginTop: '1vh' }}>
               <h4 style={{ margin: 5, backgroundColor: '#3b3b3b', color: 'white' }}>New Government</h4>
               {
@@ -834,9 +895,19 @@
               <h4 style={{ margin: 5, backgroundColor: '#3b3b3b', color: 'white' }}>New Relationships</h4>
               {
                 filteredGlossary.filter((e) => { return e.startsWith("NR") }).map((e) => {
-                  return <div style={{ display: 'flex', width: '80%', marginLeft: '8%' }}>
-                    {e === "NR5" || e === "NR6" ? <span style={{ color: glossary[e]['color'], fontSize: 40 }}>&#x2015;</span>
-                        : <span style={{ color: glossary[e]['color'], fontSize: 30 }}>&#x279E;</span>}<h5 style={{ width: '80%', margin: '0.3vh', marginLeft: '9%', paddingTop: 5 }}>
+                  return <div style={{display: 'flex', width: '90%', marginLeft: '4%'}}>
+                    {e === "NR5" || e === "NR6" ? <>
+                          <input
+                              style={{cursor: 'pointer'}} type="checkbox" checked={relationships.includes(e)}
+                              onChange={() => addtoRelationShips(e)}/>
+                          <span style={{color: glossary[e]['color'], fontSize: 40}}>&#x2015;</span>
+                        </>
+                        : <>
+                          <input
+                              style={{cursor: 'pointer'}} type="checkbox" checked={relationships.includes(e)}
+                              onChange={() => addtoRelationShips(e)}/>
+                          <span style={{color: glossary[e]['color'], fontSize: 30}}>&#x279E;</span></>}<h5
+                      style={{width: '90%', margin: '0.3vh', marginLeft: '9%', paddingTop: 5}}>
                     {glossary[e].name}
                   </h5></div>
                 })
@@ -844,7 +915,7 @@
             </div>
           </div>
         </div>
-          </>
+        </>
     );
   };
 
