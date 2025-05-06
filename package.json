@@ -2,7 +2,7 @@
   "name": "aca_vis",
   "version": "1.0.0",
   "scripts": {
-    "start": "serve -s build -l $PORT",
+    "start": "cd client && npm run serve",
     "build": "cd client && npm install && npm run build",
     "heroku-postbuild": "npm run build"
   },
