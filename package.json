@@ -1,8 +1,8 @@
 {
-  "name": "your-project-name",
+  "name": "aca_vis",
   "version": "1.0.0",
   "scripts": {
-    "start": "cd client && npm start",
+    "start": "serve -s build -l $PORT",
     "build": "cd client && npm install && npm run build",
     "heroku-postbuild": "npm run build"
   },
