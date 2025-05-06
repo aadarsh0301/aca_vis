@@ -1,0 +1,15 @@
+{
+  "name": "your-project-name",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "cd client && npm start",
+    "build": "cd client && npm install && npm run build",
+    "heroku-postbuild": "npm run build"
+  },
+  "engines": {
+    "node": "18.x"
+  },
+  "cacheDirectories": [
+    "client/node_modules"
+  ]
+}

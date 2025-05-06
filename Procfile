@@ -1,1 +1,1 @@
-web: npx serve -s client/build
+web: npm start

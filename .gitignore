@@ -3,11 +3,11 @@ client/node_modules/
 client/.cache/
 client/.env
 client/coverage/
-client/build/* # Except you need to deploy this to Heroku
+client/build/s
 node_modules
 
 # Python
-server/__pycache__/
+server/__pycache__/s
 server/.venv/
 server/env/
 server/venv/
