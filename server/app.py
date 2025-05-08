@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify, send_from_directory
 import json
 import os
+from flask_cors import CORS
 from utils import (
     extract_text_from_pdf_from_url,
     chunk_by_sections,
@@ -8,28 +9,29 @@ from utils import (
     search_bills,
     extract_bill_id
 )
-from flask_cors import CORS
 
+# Serve React from client/build directory
 app = Flask(
     __name__,
-    static_folder="../client/build",
+    static_folder="build",  # This will be moved from client/ to server/
     static_url_path="/"
 )
 CORS(app, supports_credentials=True)
 
+# Initialize global variables
 chunks = []
 embeddings = {}
 
-@app.route('/check-embeddings', methods=['GET'])
+@app.route("/check-embeddings", methods=["GET"])
 def check_embeddings():
     exists = os.path.exists("embeddings.json") and os.path.exists("chunks.json")
     return jsonify({"exists": exists}), 200
 
-@app.route('/test', methods=['GET'])
+@app.route("/test", methods=["GET"])
 def test_cors():
     return jsonify({"message": "CORS is working!"})
 
-@app.route('/generate-embeddings', methods=['POST'])
+@app.route("/generate-embeddings", methods=["POST"])
 def generate_embeddings():
     global chunks, embeddings
     data = request.get_json()
@@ -42,7 +44,6 @@ def generate_embeddings():
 
         with open("embeddings.json", "w") as f:
             json.dump(embeddings, f)
-
         with open("chunks.json", "w") as f:
             json.dump(chunks, f)
 
@@ -50,11 +51,12 @@ def generate_embeddings():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@app.route('/search', methods=['POST'])
+@app.route("/search", methods=["POST"])
 def search():
     global chunks, embeddings
     data = request.get_json()
     query = data.get("query")
+
     try:
         if not embeddings:
             with open("embeddings.json", "r") as f:
@@ -72,7 +74,7 @@ def search():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# Serve React app
+# Serve React frontend
 @app.route("/", defaults={"path": ""})
 @app.route("/<path:path>")
 def serve_react(path):
@@ -83,4 +85,4 @@ def serve_react(path):
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5001))
-    app.run(host='0.0.0.0', port=port)
+    app.run(host="0.0.0.0", port=port)

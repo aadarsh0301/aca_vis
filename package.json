@@ -2,9 +2,9 @@
   "name": "aca_vis",
   "version": "1.0.0",
   "scripts": {
-    "start": "cd client && npm run serve",
+    "start": "cd server && gunicorn app:app",
     "build": "cd client && npm install && npm run build",
-    "heroku-postbuild": "npm run build"
+    "heroku-postbuild": "npm run build && cp -r client/build server/build"
   },
   "engines": {
     "node": "18.x"

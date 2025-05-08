@@ -411,7 +411,7 @@
 
     const searchBills = async (query) => {
       try {
-        const response = await fetch('http://localhost:5001/search', {
+        const response = await fetch('/search', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ query }),
@@ -617,12 +617,12 @@
       const checkAndCreateEmbeddings = async () => {
         try {
           // Step 1: Check if embeddings.json exists
-          const checkRes = await fetch('http://localhost:5001/check-embeddings');
+          const checkRes = await fetch('/check-embeddings');
           const checkData = await checkRes.json();
 
           if (!checkData.exists) {
             // Step 2: If not exists, call generate-embeddings API
-            const res = await fetch('http://localhost:5001/generate-embeddings', {
+            const res = await fetch('/generate-embeddings', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ pdf_url: pdfURL }),

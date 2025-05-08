@@ -15,6 +15,7 @@ server/*.pyc
 server/*.pyo
 server/*.pyd
 server/.Python
+server/build
 
 # General
 .DS_Store
