@@ -4,5 +4,5 @@ flask-cors
 numpy
 requests
 sentence-transformers
-torch==2.0.1
+torch==2.0.1+cpu
 --find-links https://download.pytorch.org/whl/cpu
