@@ -1,4 +1,3 @@
-import pymupdf
 import re
 import numpy as np
 import json
@@ -6,15 +5,6 @@ import requests
 from sentence_transformers import SentenceTransformer
 
 model = SentenceTransformer('all-MiniLM-L6-v2')
-
-def extract_text_from_pdf_from_url(pdf_url):
-    response = requests.get(pdf_url)
-    with open("temp.pdf", "wb") as f:
-        f.write(response.content)
-
-    doc = pymupdf.open("temp.pdf")
-    text = "\n".join([page.get_text("text") for page in doc])
-    return text
 
 def chunk_by_sections(text):
     pattern = r'(Sec\.|SEC\.|Section)\s*\d+[A-Z]?\.*'

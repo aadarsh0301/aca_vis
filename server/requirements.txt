@@ -1,7 +1,8 @@
 Flask
-sentence-transformers
-pymupdf
+gunicorn
+flask-cors
 numpy
 requests
-flask-cors
-gunicorn
+sentence-transformers
+torch==2.0.1+cpu
+--find-links https://download.pytorch.org/whl/cpu

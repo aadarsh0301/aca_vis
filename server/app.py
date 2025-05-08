@@ -3,7 +3,6 @@ import json
 import os
 from flask_cors import CORS
 from utils import (
-    extract_text_from_pdf_from_url,
     chunk_by_sections,
     create_embeddings,
     search_bills,
@@ -38,7 +37,6 @@ def generate_embeddings():
     pdf_url = data.get("pdf_url")
 
     try:
-        text = extract_text_from_pdf_from_url(pdf_url)
         chunks = chunk_by_sections(text)
         embeddings = create_embeddings(chunks)
 
