@@ -1,4 +1,5 @@
 # requirements.txt
+torch==2.2.0  # or a compatible, lightweight CPU version
 transformers==4.40.1
 numpy
 flask
