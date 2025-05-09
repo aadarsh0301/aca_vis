@@ -34,9 +34,12 @@ def test_cors():
 def generate_embeddings():
     global chunks, embeddings
     data = request.get_json()
-    pdf_url = data.get("pdf_url")
+    pdf_url = data.get("https://housedocs.house.gov/energycommerce/ppacacon.pdf")
 
     try:
+        response = requests.get(pdf_url)
+        text = response.text  # You were missing this line
+
         chunks = chunk_by_sections(text)
         embeddings = create_embeddings(chunks)
 
@@ -48,6 +51,7 @@ def generate_embeddings():
         return jsonify({"message": "Embeddings and chunks generated and saved."}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
 
 @app.route("/search", methods=["POST"])
 def search():

@@ -1,10 +1,17 @@
+# utils.py
 import re
 import numpy as np
-import json
-import requests
 from sentence_transformers import SentenceTransformer
+from functools import lru_cache
+import os
 
-model = SentenceTransformer('all-MiniLM-L6-v2')
+# Set Hugging Face cache directory to /tmp (Heroku allows this)
+os.environ["SENTENCE_TRANSFORMERS_HOME"] = "/tmp"
+os.environ["TRANSFORMERS_CACHE"] = "/tmp"
+
+@lru_cache(maxsize=1)
+def get_model():
+    return SentenceTransformer("all-MiniLM-L6-v2")
 
 def chunk_by_sections(text):
     pattern = r'(Sec\.|SEC\.|Section)\s*\d+[A-Z]?\.*'
@@ -17,10 +24,12 @@ def chunk_by_sections(text):
     return chunks
 
 def create_embeddings(chunks):
+    model = get_model()
     embeddings = {f"chunk_{i}": model.encode(chunk).tolist() for i, chunk in enumerate(chunks)}
     return embeddings
 
 def search_bills(query, embeddings, chunks, top_n=5):
+    model = get_model()
     query_embedding = model.encode(query)
     similarities = {
         chunk_id: np.dot(query_embedding, emb) / (np.linalg.norm(query_embedding) * np.linalg.norm(emb))
