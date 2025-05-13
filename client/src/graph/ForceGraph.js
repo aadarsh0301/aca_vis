@@ -16,7 +16,7 @@
   const steps = [
     {
       target: ".APPTITLE",
-      content: "Welcome!! Please spare a minute to learn about Your New Health Care Act",
+      content: "Welcome!! Please spare a minute to learn about Your New Health Care Act.",
       disableBeacon: true
     },
     {

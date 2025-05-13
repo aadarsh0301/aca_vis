@@ -1,38 +1,46 @@
 import re
 import numpy as np
-import torch
-from transformers import AutoTokenizer, AutoModel
+import requests
+from dotenv import load_dotenv
+import os
 
-# Load model and tokenizer once
-tokenizer = AutoTokenizer.from_pretrained("sentence-transformers/all-MiniLM-L6-v2")
-model = AutoModel.from_pretrained("sentence-transformers/all-MiniLM-L6-v2")
+load_dotenv()  # Load environment variables from .env file
 
-def mean_pooling(model_output, attention_mask):
-    token_embeddings = model_output[0]  # First element: last hidden state
-    input_mask_expanded = attention_mask.unsqueeze(-1).expand(token_embeddings.size())
-    return (token_embeddings * input_mask_expanded).sum(1) / input_mask_expanded.sum(1)
+headers = {
+    "Authorization": f"Bearer {os.getenv('HF_API_KEY')}",
+}
+# Constants for Hugging Face Inference API
+API_URL = "https://router.huggingface.co/hf-inference/models/sentence-transformers/all-MiniLM-L6-v2/pipeline/feature-extraction"
 
+# Send a request to Hugging Face Inference API
+def query(sentences):
+    payload = {"inputs": {"sentences": sentences}}
+    response = requests.post(API_URL, headers=headers, json=payload)
+    response.raise_for_status()  # Raise error if request failed
+    return response.json()
+
+# Encode text using remote API
 def encode(texts):
-    encoded_input = tokenizer(texts, padding=True, truncation=True, return_tensors='pt')
-    with torch.no_grad():
-        model_output = model(**encoded_input)
-    embeddings = mean_pooling(model_output, encoded_input['attention_mask'])
-    return embeddings.numpy()
+    response = query(texts)
+    return np.array(response)
 
+# Chunk the input text by sections (Sec./SEC./Section)
 def chunk_by_sections(text):
     pattern = r'(Sec\.|SEC\.|Section)\s*\d+[A-Z]?\.*'
     matches = list(re.finditer(pattern, text))
     chunks = []
     for i in range(len(matches)):
         start = matches[i].start()
-        end = matches[i + 1].start() if i + 1 < len(text) else len(text)
+        end = matches[i + 1].start() if i + 1 < len(matches) else len(text)
         chunks.append(text[start:end].strip())
     return chunks
 
+# Generate embeddings for text chunks
 def create_embeddings(chunks):
     embeddings = {f"chunk_{i}": emb for i, emb in enumerate(encode(chunks))}
     return embeddings
 
+# Search top-n similar chunks for a given query
 def search_bills(query, embeddings, chunks, top_n=5):
     query_embedding = encode([query])[0]
     similarities = {
@@ -43,6 +51,7 @@ def search_bills(query, embeddings, chunks, top_n=5):
     temp = [(chunk_id, chunks[int(chunk_id.split('_')[1])]) for chunk_id, _ in sorted_chunks]
     return temp
 
+# Extract bill ID from a text chunk
 def extract_bill_id(chunk_text):
     match = re.search(r"Sec\.\s*(\d+)", chunk_text)
     return match.group(1) if match else None
