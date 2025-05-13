@@ -42,14 +42,17 @@ def create_embeddings(chunks):
 
 # Search top-n similar chunks for a given query
 def search_bills(query, embeddings, chunks, top_n=5):
-    query_embedding = encode([query])[0]
-    similarities = {
-        chunk_id: np.dot(query_embedding, emb) / (np.linalg.norm(query_embedding) * np.linalg.norm(emb))
-        for chunk_id, emb in embeddings.items()
-    }
-    sorted_chunks = sorted(similarities.items(), key=lambda x: x[1], reverse=True)[:top_n]
-    temp = [(chunk_id, chunks[int(chunk_id.split('_')[1])]) for chunk_id, _ in sorted_chunks]
-    return temp
+    if len(query) > 3:
+        query_embedding = encode([query])[0]
+        similarities = {
+            chunk_id: np.dot(query_embedding, emb) / (np.linalg.norm(query_embedding) * np.linalg.norm(emb))
+            for chunk_id, emb in embeddings.items()
+        }
+        sorted_chunks = sorted(similarities.items(), key=lambda x: x[1], reverse=True)[:top_n]
+        temp = [(chunk_id, chunks[int(chunk_id.split('_')[1])]) for chunk_id, _ in sorted_chunks]
+        return temp
+    else :
+        return []
 
 # Extract bill ID from a text chunk
 def extract_bill_id(chunk_text):
